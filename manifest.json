@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Smart Image Downloader",
+  "version": "4.2",
+  "description": "Download high-res images with visual debugging.",
+  "permissions": [
+    "downloads",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

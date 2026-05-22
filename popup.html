@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Image Downloader</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --accent-solid: #4f46e5;
+            --accent-hover: #4338ca;
+            --success: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --danger: #ef4444;
+            --glow: 0 4px 14px rgba(79, 70, 229, 0.12);
+            --success-glow: 0 4px 14px rgba(16, 185, 129, 0.12);
+        }
+
+        body.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --glow: 0 4px 14px rgba(99, 102, 241, 0.2);
+            --success-glow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        }
+
+        select {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 4px 6px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-weight: 500;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--accent-solid);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        body.dark select {
+            background: var(--bg-secondary);
+        }
+
+        * {
+            font-size: 10pt !important;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 500px;
+            margin: 0;
+            padding: 8px 10px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            background-image: radial-gradient(circle at top right, rgba(99, 102, 241, 0.06), transparent),
+                              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.04), transparent);
+            color: var(--text-primary);
+            overflow-y: auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 6px;
+            background: var(--accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .header-desc {
+            color: var(--text-secondary);
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: var(--bg-secondary);
+            padding: 2px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--card-border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px 8px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: var(--glow);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 5px 8px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--accent-solid);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 50px;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 4px 6px;
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+            resize: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-solid);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 4px 6px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-solid);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .switch-row:last-child {
+            border-bottom: none;
+        }
+
+        .switch-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .switch-desc {
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+
+        button.primary-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button.primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+        }
+
+        button.primary-btn:active {
+            transform: translateY(1px);
+        }
+
+        button.primary-btn:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.success-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--success-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button.success-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+        }
+
+        button.success-btn:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #log {
+            margin-top: 6px;
+            color: #047857;
+            white-space: pre-wrap;
+            max-height: 55px;
+            overflow-y: auto;
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-family: monospace;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            margin-top: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+
+        .stats-badge-container {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .stats-badge {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .stats-badge.active-filter {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.03);
+        }
+
+        .stats-val {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .stats-lbl {
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .help-section {
+            margin-bottom: 15px;
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-title {
+            font-weight: 600;
+            color: var(--accent-solid);
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 4px;
+        }
+
+        .help-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 6px 10px;
+        }
+
+        .help-grid-lbl {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .help-grid-val {
+            font-weight: 600;
+        }
+
+        .help-changelog {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .changelog-item {
+            border-left: 2px solid #7c3aed;
+            padding-left: 8px;
+            margin-left: 2px;
+        }
+
+        .changelog-ver {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .changelog-ver span {
+            background: #f3e8ff;
+            color: #7e22ce;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .changelog-desc {
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .help-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .help-step-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .help-step-desc {
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .help-step-desc ul {
+            margin: 4px 0 0 0;
+            padding-left: 12px;
+        }
+
+        .help-step-desc li {
+            margin-bottom: 2px;
+        }
+
+        /* Split layout results container */
+        .split-container {
+            display: flex;
+            gap: 8px;
+            height: 150px;
+            margin-top: 2px;
+        }
+
+        .left-pane {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--card-border);
+            padding-right: 6px;
+        }
+
+        .right-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .thumb-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+        }
+
+        .thumb-item {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #cbd5e1;
+        }
+
+        .thumb-item:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-solid);
+        }
+
+        .thumb-item.selected {
+            border-color: var(--accent-solid);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        .detail-card {
+            background: rgba(0, 0, 0, 0.01);
+            border: 1px dashed var(--card-border);
+            border-radius: 4px;
+            padding: 4px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .detail-placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            font-size: 9pt !important;
+            line-height: 1.3;
+        }
+
+        .detail-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9pt !important;
+            line-height: 1.2;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+            word-break: break-all;
+            max-width: 130px;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 3px;
+        }
+
+        .detail-link-btn {
+            flex: 1;
+            display: inline-block;
+            text-align: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--card-border);
+            color: var(--accent-solid);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 8pt !important;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .detail-link-btn:hover {
+            background: var(--accent-solid);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 data-i18n="appTitle">Smart Image Downloader v4.2 by JACK NGUYEN</h2>
+    <div class="header-desc" data-i18n="appDesc">Hệ thống tải hình ảnh thông minh tích hợp bộ lọc trực quan.</div>
+
+    <!-- Segmented Tab Navigation: Tab 1 Quét Trang, Tab 2 Smart Search, Tab 3 Settings, Tab 4 Help -->
+    <div class="tabs-header">
+        <button class="tab-btn active" id="tab-scan-btn" data-i18n="tabScan">
+            Quét Trang
+        </button>
+        <button class="tab-btn" id="tab-settings-btn" data-i18n="tabSettings">
+            Cài Đặt
+        </button>
+        <button class="tab-btn" id="tab-help-btn" data-i18n="tabHelp">
+            Giới Thiệu
+        </button>
+    </div>
+
+    <!-- TAB 1: Quét Trang (Mặc định) -->
+    <div class="tab-content active" id="tab-scan">
+        <div class="card">
+            <!-- H Input & Slider -->
+            <div class="row" style="align-items: center; margin-bottom: 8px;">
+                <div class="col" style="flex: 2;">
+                    <label for="scanMinHeight" data-i18n="scanMinHeightLabel">Chiều cao tối thiểu H (px)</label>
+                    <div class="slider-container">
+                        <input type="range" id="scanMinHeightSlider" min="0" max="2000" value="800">
+                    </div>
+                </div>
+                <div class="col" style="flex: 0.8;">
+                    <label style="opacity: 0; pointer-events: none;">H (px)</label>
+                    <input type="number" id="scanMinHeight" value="800" min="0" max="2000" style="padding: 4px 6px;">
+                </div>
+            </div>
+
+            <!-- Maximum scanned count input -->
+            <div class="row" style="align-items: center; margin-bottom: 0;">
+                <div class="col">
+                    <label for="scanMaxCount" data-i18n="scanMaxCountLabel">Số ảnh quét tối đa</label>
+                    <input type="number" id="scanMaxCount" value="50" min="1" max="100" style="padding: 4px 6px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="switch-row">
+                <div>
+                    <div class="switch-label" data-i18n="scanAutoFolderLabel">Tự tạo thư mục tải</div>
+                    <div class="switch-desc" data-i18n="scanAutoFolderDesc">Tạo thư mục con theo tên miền chính trang web (hostname)</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="scanAutoFolder" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-row">
+                <div>
+                    <div class="switch-label" data-i18n="scanAutoRenameLabel">Tự động đổi tên (Thời gian)</div>
+                    <div class="switch-desc" data-i18n="scanAutoRenameDesc">Tự động đổi tên hình ảnh theo định dạng YYYYMMDDSS</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="scanAutoRename">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="row" style="margin-bottom: 6px; gap: 8px;">
+            <div class="col" style="flex: 1.2;">
+                <button id="scanBtn" class="primary-btn" style="width: 100%;" data-i18n="scanBtnText">QUÉT HÌNH TRÊN TRANG</button>
+            </div>
+            <div class="col" style="flex: 0.8;">
+                <button id="scanMoreBtn" class="success-btn" style="width: 100%; height: 100%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);" disabled data-i18n="scanMoreBtnText">QUÉT TIẾP</button>
+            </div>
+            <div class="col" style="flex: 0.6;">
+                <button id="clearBtn" class="success-btn" style="width: 100%; height: 100%; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);" disabled data-i18n="clearBtnText">XOÁ</button>
+            </div>
+        </div>
+
+        <div class="stats-badge-container">
+            <div class="stats-badge">
+                <div class="stats-val" id="statScannedCount">0</div>
+                <div class="stats-lbl" data-i18n="statScannedLabel">Đã tìm thấy</div>
+            </div>
+            <div class="stats-badge active-filter">
+                <div class="stats-val" id="statFilteredCount" style="color: #7c3aed;">0</div>
+                <div class="stats-lbl" data-i18n="statFilteredLabel">Đạt chuẩn (>= H)</div>
+            </div>
+        </div>
+
+        <button id="scanDownloadBtn" class="success-btn" style="margin-bottom: 6px;" disabled data-i18n="scanDownloadBtnTextZero">TẢI HÌNH VỀ MÁY (0 ảnh)</button>
+
+        <!-- Kết quả quét hiển thị dạng cột chia đôi -->
+        <div class="card" id="scanResultsArea" style="display: none; padding: 6px 10px;">
+            <div class="split-container">
+                <!-- Cột trái: Danh sách ảnh thu nhỏ -->
+                <div class="left-pane">
+                    <label style="margin-bottom: 4px; color: var(--accent-solid);" data-i18n="imageListLabel">Danh sách hình ảnh</label>
+                    <div class="thumb-grid" id="thumbGrid"></div>
+                </div>
+                
+                <!-- Cột phải: Chi tiết hình ảnh được chọn -->
+                <div class="right-pane">
+                    <label style="margin-bottom: 4px; color: var(--accent-solid);" data-i18n="imageDetailLabel">Chi tiết hình ảnh</label>
+                    <div id="imageDetailCard" class="detail-card">
+                        <div class="detail-placeholder" data-i18n="detailPlaceholder">Bấm vào một hình ảnh bên trái để xem chi tiết.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Khung hiển thị log tiến trình quét -->
+        <div id="scanLog" style="margin-top: 6px; color: #4338ca; white-space: pre-wrap; max-height: 55px; overflow-y: auto; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 4px; padding: 4px 6px; font-family: monospace; font-size: 8.5pt !important;" data-i18n="scanLogReady">Hệ thống quét trang đã sẵn sàng.</div>
+    </div>
+
+
+
+    <!-- TAB 3: Cài Đặt (Settings) -->
+    <div class="tab-content" id="tab-settings">
+        <div class="card">
+            <label for="settingsLang" data-i18n="settingsLangLabel">Ngôn ngữ giao diện</label>
+            <div style="margin-top: 4px; margin-bottom: 4px;">
+                <select id="settingsLang">
+                    <option value="vi" data-i18n="langVi">Tiếng Việt (Mặc định)</option>
+                    <option value="en" data-i18n="langEn">English</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <label for="settingsTheme" data-i18n="settingsThemeLabel">Giao diện (Theme)</label>
+            <div style="margin-top: 4px; margin-bottom: 4px;">
+                <select id="settingsTheme">
+                    <option value="system" data-i18n="themeSystem">Theo hệ thống (System)</option>
+                    <option value="light" data-i18n="themeLight">Sáng (Light)</option>
+                    <option value="dark" data-i18n="themeDark">Tối (Dark)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="switch-row" style="border-bottom: none;">
+                <div>
+                    <div class="switch-label" data-i18n="settingsPersistLabel">Giữ lại thông tin quét lần trước</div>
+                    <div class="switch-desc" data-i18n="settingsPersistDesc">Tự động khôi phục danh sách ảnh và lịch sử quét khi mở lại popup</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="settingsPersist" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: Giới Thiệu -->
+    <div class="tab-content" id="tab-help">
+        <div class="card">
+            <div class="help-section">
+                <div class="help-title" data-i18n="helpInfoTitle">Thông Tin Tiện Ích</div>
+                <div class="help-grid">
+                    <div class="help-grid-lbl" data-i18n="helpGridVerLabel">Phiên bản:</div>
+                    <div class="help-grid-val" style="color: #7c3aed;">4.2 Pro</div>
+ 
+                     <div class="help-grid-lbl" data-i18n="helpGridDateLabel">Ngày cập nhật:</div>
+                     <div class="help-grid-val">22/05/2026</div>
+ 
+                     <div class="help-grid-lbl" data-i18n="helpGridAuthorLabel">Tác giả biên soạn:</div>
+                     <div class="help-grid-val" style="color: #4f46e5;">JACK NGUYEN</div>
+ 
+                     <div class="help-grid-lbl" data-i18n="helpGridOriginalAuthorLabel">Tác giả gốc:</div>
+                     <div class="help-grid-val">Đội ngũ DeepMind & Cộng tác viên</div>
+                 </div>
+             </div>
+         </div>
+ 
+         <div class="card">
+             <div class="help-title" data-i18n="helpChangelogTitle">5 Phiên Bản Gần Nhất</div>
+             <div class="help-changelog">
+                  <div class="changelog-item">
+                      <div class="changelog-ver">v4.2 Pro <span data-i18n="helpChangelogCurrent">Hiện tại</span></div>
+                      <div class="changelog-desc" data-i18n="helpChangelogV42">Bổ sung chuẩn trích dẫn Chicago song song với APA, loại bỏ tuỳ chọn thời gian chờ và tab Tìm kiếm thông minh để tối ưu hiệu năng.</div>
+                  </div>
+                  <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                      <div class="changelog-ver">v4.1.1 Pro</div>
+                      <div class="changelog-desc" data-i18n="helpChangelogV411">Sửa lỗi tự đóng chương trình và tự mở tab khi quét Google Images, nâng cấp cơ chế tải trích dẫn APA sang Blob URL an toàn.</div>
+                  </div>
+                 <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                     <div class="changelog-ver">v4.1 Pro</div>
+                     <div class="changelog-desc" data-i18n="helpChangelogV41">Bổ sung nút "Quét tiếp" thông minh tránh trùng lặp, mặc định chiều cao tối thiểu H=800px, bảo toàn tên thư mục lưu theo Website gốc chính xác.</div>
+                 </div>
+                 <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                     <div class="changelog-ver">v4.0 Pro</div>
+                     <div class="changelog-desc" data-i18n="helpChangelogV4">Thêm tab "Quét Trang", lọc nhanh dynamic theo chiều cao H, tự tạo folder theo tên miền web, auto-rename YYYYMMDDSS và giao diện Glassmorphism đỉnh cao.</div>
+                 </div>
+                <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                    <div class="changelog-ver">v3.0</div>
+                    <div class="changelog-desc" data-i18n="helpChangelogV3">Cải tiến cơ chế tương tác và tải hình trên Google, tăng tốc xử lý và tối ưu hóa hàng đợi scraper.</div>
+                </div>
+                <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                    <div class="changelog-ver">v2.1</div>
+                    <div class="changelog-desc" data-i18n="helpChangelogV21">Bổ sung quản lý lỗi kết nối và cải tiến định dạng đường dẫn tải xuống mặc định.</div>
+                </div>
+                <div class="changelog-item" style="border-color: rgba(0, 0, 0, 0.15);">
+                    <div class="changelog-ver">v2.0</div>
+                    <div class="changelog-desc" data-i18n="helpChangelogV20">Tích hợp bộ lọc tìm kiếm "Kích thước lớn" (Large) và "Tỷ lệ rộng" (Wide) trên thanh công cụ tìm kiếm Google.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="help-title" data-i18n="helpGuideTitle">Hướng Dẫn Sử Dụng Chi Tiết</div>
+            <div class="help-steps">
+                <div>
+                    <div class="help-step-title" data-i18n="helpGuideScanTitle">
+                        <span>1. Tab Quét Trang (Trực quan tại chỗ)</span>
+                    </div>
+                    <div class="help-step-desc" data-i18n="helpGuideScanDesc">
+                        Tải hình trực tiếp từ trang web bạn đang duyệt (kể cả kết quả tìm kiếm Google):
+                        <ul>
+                            <li>Bước 1: Mở trang web mong muốn trên Chrome.</li>
+                            <li>Bước 2: Nhập chiều cao tối thiểu H (nhập số hoặc trượt thanh kéo).</li>
+                            <li>Bước 3: Nhập số lượng hình quét tối đa muốn quét (mặc định là 50).</li>
+                            <li>Bước 4: Bật các tùy chọn "Tự tạo thư mục" hoặc "Auto Rename".</li>
+                            <li>Bước 5: Bấm nút "QUÉT HÌNH TRÊN TRANG". Quét giả lập từng ảnh trong thời gian thực để lấy kích thước hình và nguồn gốc thực.</li>
+                            <li>Bước 6: Nếu thay đổi H, danh sách lọc sẽ tự tính toán lại theo số lượng đạt chuẩn.</li>
+                            <li>Bước 7: Bấm nút "TẢI HÌNH VỀ MÁY" để bắt đầu tải xuống hàng loạt vào thư mục tên miền chính (domain).</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
