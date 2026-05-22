@@ -516,9 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let val = parseInt(scanMinHeight.value, 10);
             if (isNaN(val)) val = 0;
             if (val < 0) val = 0;
-            if (val > 2000) val = 2000;
+            if (val > 2160) val = 2160;
             
-            scanMinHeightSlider.value = Math.min(val, 2000);
+            scanMinHeightSlider.value = Math.min(val, 2160);
             filterAndDisplayImages();
             saveCurrentScanData();
         });
@@ -590,6 +590,19 @@ function getMainDomain(hostname) {
     
     // Omit subdomain parts (e.g. blog.iucnurbanalliance.org -> iucnurbanalliance.org)
     return parts.slice(-2).join('.');
+}
+
+// -------------------------------------------------------------
+// Helper: Set height slider + input to a preset resolution value
+// Called by tick label onclick handlers in popup.html
+// -------------------------------------------------------------
+function setHeightValue(val) {
+    const scanMinHeight = document.getElementById('scanMinHeight');
+    const scanMinHeightSlider = document.getElementById('scanMinHeightSlider');
+    if (scanMinHeight) scanMinHeight.value = val;
+    if (scanMinHeightSlider) scanMinHeightSlider.value = val;
+    filterAndDisplayImages();
+    saveCurrentScanData();
 }
 
 async function scanPageImages(maxCount, scanDelayMs, startIndex = 0, alreadyScannedUrls = []) {

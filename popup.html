@@ -664,6 +664,51 @@
             background: var(--accent-solid);
             color: white;
         }
+
+        /* Resolution snap tick marks below the height slider */
+        .slider-ticks {
+            position: relative;
+            width: 100%;
+            margin-top: 5px;
+            height: 14px;
+        }
+
+        .tick-label {
+            position: absolute;
+            transform: translateX(-50%);
+            font-size: 8px !important;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 3px;
+            transition: color 0.15s, background 0.15s, transform 0.1s;
+            user-select: none;
+            letter-spacing: 0.4px;
+            line-height: 1.2;
+        }
+
+        .tick-label::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 4px;
+            background: var(--card-border);
+            border-radius: 1px;
+        }
+
+        .tick-label:hover {
+            color: var(--accent-solid);
+            background: rgba(79, 70, 229, 0.1);
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        .tick-label:active {
+            transform: translateX(-50%) scale(0.95);
+        }
     </style>
 </head>
 
@@ -688,16 +733,29 @@
     <div class="tab-content active" id="tab-scan">
         <div class="card">
             <!-- H Input & Slider -->
-            <div class="row" style="align-items: center; margin-bottom: 8px;">
+            <div class="row" style="align-items: center; margin-bottom: 4px;">
                 <div class="col" style="flex: 2;">
                     <label for="scanMinHeight" data-i18n="scanMinHeightLabel">Chiều cao tối thiểu H (px)</label>
                     <div class="slider-container">
-                        <input type="range" id="scanMinHeightSlider" min="0" max="2000" value="800">
+                        <input type="range" id="scanMinHeightSlider" min="0" max="2160" value="800" list="heightMarkers">
+                        <datalist id="heightMarkers">
+                            <option value="720"></option>
+                            <option value="1080"></option>
+                            <option value="1440"></option>
+                            <option value="2160"></option>
+                        </datalist>
+                    </div>
+                    <!-- Resolution snap tick labels -->
+                    <div class="slider-ticks">
+                        <span class="tick-label" style="left:33.33%" title="HD — 1280×720px" onclick="setHeightValue(720)">HD</span>
+                        <span class="tick-label" style="left:50%" title="Full HD — 1920×1080px" onclick="setHeightValue(1080)">FHD</span>
+                        <span class="tick-label" style="left:66.67%" title="2K — 2560×1440px" onclick="setHeightValue(1440)">2K</span>
+                        <span class="tick-label" style="left:100%;transform:translateX(-100%)" title="4K UHD — 3840×2160px" onclick="setHeightValue(2160)">4K</span>
                     </div>
                 </div>
                 <div class="col" style="flex: 0.8;">
                     <label style="opacity: 0; pointer-events: none;">H (px)</label>
-                    <input type="number" id="scanMinHeight" value="800" min="0" max="2000" style="padding: 4px 6px;">
+                    <input type="number" id="scanMinHeight" value="800" min="0" max="2160" style="padding: 4px 6px;">
                 </div>
             </div>
 
